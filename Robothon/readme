@@ -1,0 +1,38 @@
+// origin
+"Management.i", "Management.py", "ManagementWrapper.cpp", "ManagementWrapperImpl.cpp", "StatStruct.h"
+
+// generate SWIG wrapper
+swig -java -c++ Management.i
+// Get "Management_wrap.cxx", "ManagementWrapper.java", "ManagementWrapperJNI.java", "StatStruct.java", "SWIGTYPE_p_double.java", "SWIGTYPE_p_PyObject.java", "SWIGTYPE_p_std__string.java"
+
+// compile C++ code into object files
+g++ -fPIC -c -g -O0 -std=c++17 -pedantic-errors -I. \
+    -I/usr/lib/jvm/java-8-openjdk-amd64/include \
+    -I/usr/lib/jvm/java-8-openjdk-amd64/include/linux \
+    $(python3-config --cflags) Management_wrap.cxx ManagementWrapperImpl.cpp
+// Get "Management_wrap.o", "ManagementWrapperImpl.o", 
+
+// link object files to create a shared library
+g++ -fno-lto Management_wrap.o ManagementWrapperImpl.o -o libManagementWrapper.so \
+    -shared \
+    -I. -I/anaconda/envs/py37_default/include/python3.7m \
+    -I/usr/lib/jvm/java-8-openjdk-amd64/include \
+    -I/usr/lib/jvm/java-8-openjdk-amd64/include/linux \
+    $(python3-config --ldflags)
+// Get "libManagementWrapper.so"
+
+// compile java
+javac Test.java
+
+// run Test
+java Test
+
+// 開啟環境步驟
+// Activate virtual environment
+conda activate py310
+// 在./Scripts中開三個terminal個別執行以下三個command
+./run_rabbitmq_receiver.sh
+./run_replay_agent.sh
+./run_market_maker.sh
+// 在./ArchSimTrading/Bots中開terminal執行以下command
+./run_JGil0403_bots_event_1.sh
